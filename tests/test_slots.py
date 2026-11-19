@@ -36,3 +36,20 @@ def test_long_service_needs_whole_gap():
 def test_past_slots_are_hidden():
     starts = free_starts(DAY, WORK, duration=30, step=30, busy=[], current=at(11, 10))
     assert starts == [at(11, 30), at(12), at(12, 30)]
+
+
+def test_upcoming_days_skip_days_off(monkeypatch):
+    import bot.slots as slots
+    from bot.salon import Master
+
+    work = {0: WORK, 2: WORK}  # пн и ср
+    monkeypatch.setattr(slots, "now", lambda: datetime(2026, 11, 16, 9, 0))  # пн
+    monkeypatch.setattr(slots, "MASTERS", {
+        "a": Master(id="a", name="A", schedule=work),
+        "b": Master(id="b", name="B", schedule={1: WORK}),  # вт
+    })
+    monkeypatch.setattr(slots.config, "BOOKING_DAYS_AHEAD", 7)
+
+    assert slots.upcoming_days(["a"]) == [date(2026, 11, 16), date(2026, 11, 18)]
+    # «Любой мастер» — дни, когда работает хотя бы один.
+    assert slots.upcoming_days(["a", "b"]) == [date(2026, 11, 16), date(2026, 11, 17), date(2026, 11, 18)]

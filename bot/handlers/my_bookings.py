@@ -76,7 +76,8 @@ async def start_reschedule(
     await state.clear()
     await state.update_data(booking_id=booking.id)
     await state.set_state(RescheduleFlow.date)
-    await call.message.edit_text(TEXTS["choose_date"], reply_markup=kb.dates(upcoming_days()))
+    days = upcoming_days([booking.master_id])
+    await call.message.edit_text(TEXTS["choose_date"], reply_markup=kb.dates(days))
     await call.answer()
 
 
@@ -131,7 +132,8 @@ async def reschedule_time(
             return
         if start not in await _free_times(db, old, start.date()):
             await state.set_state(RescheduleFlow.date)
-            await call.message.edit_text(TEXTS["slot_taken"], reply_markup=kb.dates(upcoming_days()))
+            days = upcoming_days([old.master_id])
+            await call.message.edit_text(TEXTS["slot_taken"], reply_markup=kb.dates(days))
             await call.answer()
             return
         duration = old.end - old.start

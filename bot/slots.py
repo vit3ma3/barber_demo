@@ -63,6 +63,8 @@ async def find_free_times(
     return dict(sorted(result.items()))
 
 
-def upcoming_days() -> list[date]:
+def upcoming_days(master_ids: list[str]) -> list[date]:
+    """Ближайшие дни, в которые работает хотя бы один из мастеров."""
     today = now().date()
-    return [today + timedelta(days=i) for i in range(config.BOOKING_DAYS_AHEAD)]
+    days = [today + timedelta(days=i) for i in range(config.BOOKING_DAYS_AHEAD)]
+    return [day for day in days if any(MASTERS[m].work_hours(day) for m in master_ids)]

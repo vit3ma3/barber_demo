@@ -87,7 +87,8 @@ async def block_start(message: Message, state: FSMContext) -> None:
 async def block_master(call: CallbackQuery, callback_data: kb.MasterCb, state: FSMContext) -> None:
     await state.update_data(master_id=callback_data.id)
     await state.set_state(BlockFlow.date)
-    await call.message.edit_text(TEXTS["choose_date"], reply_markup=kb.dates(upcoming_days()))
+    days = upcoming_days([callback_data.id])
+    await call.message.edit_text(TEXTS["choose_date"], reply_markup=kb.dates(days))
     await call.answer()
 
 

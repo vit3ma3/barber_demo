@@ -49,7 +49,8 @@ async def choose_service(call: CallbackQuery, callback_data: kb.ServiceCb, state
 async def choose_master(call: CallbackQuery, callback_data: kb.MasterCb, state: FSMContext) -> None:
     await state.update_data(master_id=callback_data.id)
     await state.set_state(BookingFlow.date)
-    await call.message.edit_text(TEXTS["choose_date"], reply_markup=kb.dates(upcoming_days()))
+    days = upcoming_days(_candidates(callback_data.id))
+    await call.message.edit_text(TEXTS["choose_date"], reply_markup=kb.dates(days))
     await call.answer()
 
 
@@ -123,7 +124,8 @@ async def confirm(
         free_masters = free.get(start)
         if not free_masters:
             await state.set_state(BookingFlow.date)
-            await call.message.edit_text(TEXTS["slot_taken"], reply_markup=kb.dates(upcoming_days()))
+            days = upcoming_days(_candidates(data["master_id"]))
+            await call.message.edit_text(TEXTS["slot_taken"], reply_markup=kb.dates(days))
             await call.answer()
             return
         booking = await db.add_booking(
